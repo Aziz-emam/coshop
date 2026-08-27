@@ -1,0 +1,9 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Finance.Domain", "Finance.Domain\Finance.Domain.csproj", "{A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Finance.Application", "Finance.Application\Finance.Application.csproj", "{A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Finance.Infrastructure", "Finance.Infrastructure\Finance.Infrastructure.csproj", "{A3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Finance.Api", "Finance.Api\Finance.Api.csproj", "{A4}"
+EndProject
