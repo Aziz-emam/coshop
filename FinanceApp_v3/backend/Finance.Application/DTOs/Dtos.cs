@@ -43,3 +43,4 @@ public record SalaryReportDto(DateTime From, DateTime To, List<EmpSumDto> Employ
 public record EmpSumDto(string Name, decimal Total, int Count);
 public record AuditDto(DateTime CreatedAt, string UserName, string EntityType, int EntityId, string Action, string Summary, string? Note);
 public record SalaryPaymentDto(int Id, DateTime OperationDate, decimal Amount, string? Notes, DateTime CreatedAt, string CreatedByName);
+public record PagedResultDto<T>(List<T> Items, int Page, int PageSize, int TotalCount, int TotalPages);
