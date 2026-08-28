@@ -165,9 +165,9 @@ public class FinanceController : ControllerBase
     public async Task<IActionResult> DayNet([FromQuery] DateTime date)
         => Ok(await _s.DayNet(date));
 
-    [HttpGet("incomes")]
-    public async Task<IActionResult> Incomes([FromQuery] DateTime? from, [FromQuery] DateTime? to)
-        => Ok(await _s.ListIncomes(from, to));
+  [HttpGet("incomes")]
+  public async Task<IActionResult> Incomes([FromQuery] DateTime? from, [FromQuery] DateTime? to, [FromQuery] int page = 1, [FromQuery] int pageSize = 25)
+      => Ok(await _s.ListIncomes(from, to, page, pageSize));
 
     [HttpPost("incomes")]
     public async Task<IActionResult> AddInc([FromBody] AddIncomeDto dto)
@@ -193,8 +193,8 @@ public class FinanceController : ControllerBase
     }
 
     [HttpGet("expenses")]
-    public async Task<IActionResult> Expenses([FromQuery] DateTime? from, [FromQuery] DateTime? to)
-        => Ok(await _s.ListExpenses(from, to));
+  public async Task<IActionResult> Expenses([FromQuery] DateTime? from, [FromQuery] DateTime? to, [FromQuery] int page = 1, [FromQuery] int pageSize = 25)
+      => Ok(await _s.ListExpenses(from, to, page, pageSize));
 
     [HttpPost("expenses")]
     public async Task<IActionResult> AddExp([FromBody] AddExpenseDto dto)
