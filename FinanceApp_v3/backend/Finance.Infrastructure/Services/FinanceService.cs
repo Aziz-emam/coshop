@@ -288,12 +288,19 @@ public async Task<PagedResultDto<IncomeDto>> ListIncomes(DateTime? from, DateTim
     x.Id, x.OperationDate, x.CreatedAt, x.ExpenseCategoryId, x.ExpenseCategory.Name, x.ExpenseCategory.Code,
     x.Amount, x.Notes, x.PartnerId, x.Partner?.Name, x.EmployeeId, x.Employee?.Name, x.CreatedByName)).ToList();
 
-  public async Task<List<ExpenseDto>> ListExpenses(DateTime? from, DateTime? to) {
-    var q = _db.ExpenseEntries.Include(x => x.ExpenseCategory).Include(x => x.Partner).Include(x => x.Employee).Where(x => !x.IsDeleted);
-    if (from.HasValue) q = q.Where(x => x.OperationDate.Date >= from.Value.Date);
-    if (to.HasValue) q = q.Where(x => x.OperationDate.Date <= to.Value.Date);
-    var list = await q.OrderByDescending(x => x.OperationDate).ThenByDescending(x => x.CreatedAt).Take(500).ToListAsync();
-    return MapExpenses(list);
+  public async Task<PagedResultDto<ExpenseDto>> ListExpenses(DateTime? from, DateTime? to, int page = 1, int pageSize = 25)
+  {
+      if (page < 1) page = 1;
+      if (pageSize < 1 || pageSize > 100) pageSize = 25;
+      var q = _db.ExpenseEntries.Include(x => x.ExpenseCategory).Include(x => x.Partner).Include(x => x.Employee)
+          .Where(x => !x.IsDeleted);
+      if (from.HasValue) q = q.Where(x => x.OperationDate.Date >= from.Value.Date);
+      if (to.HasValue) q = q.Where(x => x.OperationDate.Date <= to.Value.Date);
+      var total = await q.CountAsync();
+      var list = await q.OrderByDescending(x => x.OperationDate).ThenByDescending(x => x.CreatedAt)
+          .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+      var pages = total == 0 ? 1 : (int)Math.Ceiling(total / (double)pageSize);
+      return new PagedResultDto<ExpenseDto>(MapExpenses(list), page, pageSize, total, pages);
   }
   public async Task<ExpenseDto> AddExpense(AddExpenseDto dto, int userId, string userName) {
     if (dto.Amount <= 0) throw new InvalidOperationException("المبلغ يجب أن يكون أكبر من صفر");
