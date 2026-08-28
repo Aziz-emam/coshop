@@ -95,7 +95,7 @@ export default function PartnersPage() {
             </Grid>
             <Grid item xs={6} sm={2}>
               <TextField fullWidth size="small" label="الكود" value={form.code}
-                onChange={e => setForm({ ...form, code: e.target.value })} helperText="إنجليزي فريد" />
+                onChange={e => setForm({ ...form, code: e.target.value })} />
             </Grid>
             <Grid item xs={6} sm={2}>
               <TextField fullWidth size="small" type="number" label="نسبة %" value={form.sharePercent}
