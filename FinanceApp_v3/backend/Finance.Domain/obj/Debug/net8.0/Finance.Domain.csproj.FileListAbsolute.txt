@@ -1,0 +1,12 @@
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Domain/bin/Debug/net8.0/Finance.Domain.deps.json
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Domain/bin/Debug/net8.0/Finance.Domain.dll
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Domain/bin/Debug/net8.0/Finance.Domain.pdb
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Domain/obj/Debug/net8.0/Finance.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Domain/obj/Debug/net8.0/Finance.Domain.AssemblyInfoInputs.cache
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Domain/obj/Debug/net8.0/Finance.Domain.AssemblyInfo.cs
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Domain/obj/Debug/net8.0/Finance.Domain.csproj.CoreCompileInputs.cache
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Domain/obj/Debug/net8.0/Finance.Domain.sourcelink.json
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Domain/obj/Debug/net8.0/Finance.Domain.dll
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Domain/obj/Debug/net8.0/refint/Finance.Domain.dll
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Domain/obj/Debug/net8.0/Finance.Domain.pdb
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Domain/obj/Debug/net8.0/ref/Finance.Domain.dll

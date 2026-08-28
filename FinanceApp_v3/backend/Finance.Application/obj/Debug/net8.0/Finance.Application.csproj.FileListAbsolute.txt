@@ -1,0 +1,16 @@
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Application/bin/Debug/net8.0/Finance.Application.deps.json
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Application/bin/Debug/net8.0/Finance.Application.dll
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Application/bin/Debug/net8.0/Finance.Application.pdb
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Application/bin/Debug/net8.0/Finance.Domain.dll
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Application/bin/Debug/net8.0/Finance.Domain.pdb
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Application/obj/Debug/net8.0/Finance.Application.csproj.AssemblyReference.cache
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Application/obj/Debug/net8.0/Finance.Application.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Application/obj/Debug/net8.0/Finance.Application.AssemblyInfoInputs.cache
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Application/obj/Debug/net8.0/Finance.Application.AssemblyInfo.cs
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Application/obj/Debug/net8.0/Finance.Application.csproj.CoreCompileInputs.cache
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Application/obj/Debug/net8.0/Finance.Application.sourcelink.json
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Application/obj/Debug/net8.0/Finance..0798594C.Up2Date
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Application/obj/Debug/net8.0/Finance.Application.dll
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Application/obj/Debug/net8.0/refint/Finance.Application.dll
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Application/obj/Debug/net8.0/Finance.Application.pdb
+/workspaces/coshop/FinanceApp_v3/backend/Finance.Application/obj/Debug/net8.0/ref/Finance.Application.dll

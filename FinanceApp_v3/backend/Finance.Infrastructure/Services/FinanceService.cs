@@ -84,21 +84,36 @@ public class FinanceService {
   async Task<int?> ProfitCatId() =>
     (await _db.ExpenseCategories.FirstOrDefaultAsync(x => x.Code == "PROFIT_DIST" && !x.IsDeleted))?.Id;
 
-  public async Task<List<PartnerDto>> Partners() {
-    var list = await _db.Partners.Where(p => !p.IsDeleted).OrderBy(p => p.Name).ToListAsync();
-    var catId = await ProfitCatId();
-    var result = new List<PartnerDto>();
-    foreach (var p in list) {
-      decimal paid = 0;
-      if (catId.HasValue)
-        paid = await _db.ExpenseEntries.Where(e => !e.IsDeleted && e.PartnerId == p.Id && e.ExpenseCategoryId == catId).SumAsync(e => e.Amount);
-      result.Add(new PartnerDto(p.Id, p.Name, p.Code, p.SharePercent, p.IsActive, p.Notes, paid));
-    }
-    return result;
+   public async Task<List<PartnerDto>> Partners()
+  {
+      var list = await _db.Partners.Where(p => !p.IsDeleted).OrderBy(p => p.Name).ToListAsync();
+      var catId = await ProfitCatId();
+      var allInc = (await _db.IncomeEntries.Where(x => !x.IsDeleted).Select(x => x.Amount).ToListAsync()).Sum();
+      var allExp = (await _db.ExpenseEntries.Where(x => !x.IsDeleted).Select(x => x.Amount).ToListAsync()).Sum();
+      var baseNet = allInc - allExp;
+      var result = new List<PartnerDto>();
+      foreach (var p in list)
+      {
+          decimal paid = 0;
+          if (catId.HasValue)
+          {
+              var paidList = await _db.ExpenseEntries
+                  .Where(e => !e.IsDeleted && e.PartnerId == p.Id && e.ExpenseCategoryId == catId)
+                  .Select(e => e.Amount).ToListAsync();
+              paid = paidList.Sum();
+          }
+          var entitled = Math.Round(baseNet * p.SharePercent / 100m, 2);
+          result.Add(new PartnerDto(p.Id, p.Name, p.Code, p.SharePercent, p.IsActive, p.Notes, paid, entitled, entitled - paid));
+      }
+      return result;
   }
-  public async Task<(decimal total, decimal remaining, bool warn)> PartnersPercentInfo() {
-    var total = await _db.Partners.Where(p => !p.IsDeleted && p.IsActive).SumAsync(p => p.SharePercent);
-    return (total, 100 - total, Math.Abs(total - 100) > 0.01m);
+
+  public async Task<(decimal total, decimal remaining, bool warn)> PartnersPercentInfo()
+  {
+      var percents = await _db.Partners.Where(p => !p.IsDeleted && p.IsActive)
+          .Select(p => p.SharePercent).ToListAsync();
+      var total = percents.Sum();
+      return (total, 100 - total, Math.Abs(total - 100) > 0.01m);
   }
   public async Task<PartnerDto> AddPartner(CreatePartnerDto dto) {
     if (string.IsNullOrWhiteSpace(dto.Name) || string.IsNullOrWhiteSpace(dto.Code))
@@ -109,7 +124,7 @@ public class FinanceService {
     var e = new Partner { Name = dto.Name.Trim(), Code = code, SharePercent = dto.SharePercent, Notes = dto.Notes, IsActive = true };
     _db.Partners.Add(e);
     await _db.SaveChangesAsync();
-    return new PartnerDto(e.Id, e.Name, e.Code, e.SharePercent, e.IsActive, e.Notes, 0);
+    return new PartnerDto(e.Id, e.Name, e.Code, e.SharePercent, e.IsActive, e.Notes, 0, 0, 0);
   }
   public async Task UpdatePartner(int id, UpdatePartnerDto dto) {
     var e = await _db.Partners.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted) ?? throw new InvalidOperationException("غير موجود");
@@ -121,10 +136,40 @@ public class FinanceService {
     var e = await _db.Partners.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted) ?? throw new InvalidOperationException("غير موجود");
     e.IsDeleted = true; e.UpdatedAt = DateTime.UtcNow; await _db.SaveChangesAsync();
   }
-  public async Task<List<ExpenseDto>> PartnerExpenses(int partnerId) {
-    return await MapExpenses(await _db.ExpenseEntries.Include(x => x.ExpenseCategory).Include(x => x.Partner).Include(x => x.Employee)
-      .Where(x => !x.IsDeleted && x.PartnerId == partnerId).OrderByDescending(x => x.OperationDate).ThenByDescending(x => x.CreatedAt).ToListAsync());
+    public async Task<ExpenseDto> AddPartnerDistribution(int partnerId, AddDistributionDto dto, int userId, string userName)
+  {
+      var p = await _db.Partners.FirstOrDefaultAsync(x => x.Id == partnerId && !x.IsDeleted)
+          ?? throw new InvalidOperationException("الشريك غير موجود");
+      if (dto.Amount <= 0) throw new InvalidOperationException("المبلغ يجب أن يكون أكبر من صفر");
+      var cat = await _db.ExpenseCategories.FirstOrDefaultAsync(c => c.Code == "PROFIT_DIST" && !c.IsDeleted)
+          ?? throw new InvalidOperationException("بند توزيع الأرباح غير موجود");
+      var e = new ExpenseEntry {
+          OperationDate = dto.OperationDate.Date,
+          ExpenseCategoryId = cat.Id,
+          Amount = dto.Amount,
+          Notes = dto.Notes,
+          PartnerId = partnerId,
+          CreatedByUserId = userId,
+          CreatedByName = userName
+      };
+      _db.ExpenseEntries.Add(e);
+      await _db.SaveChangesAsync();
+      await _db.Entry(e).Reference(x => x.ExpenseCategory).LoadAsync();
+      await _db.Entry(e).Reference(x => x.Partner).LoadAsync();
+      return MapExpenses(new List<ExpenseEntry> { e })[0];
   }
+  public async Task<List<ExpenseDto>> PartnerExpenses(int partnerId)
+{
+    var list = await _db.ExpenseEntries
+        .Include(x => x.ExpenseCategory)
+        .Include(x => x.Partner)
+        .Include(x => x.Employee)
+        .Where(x => !x.IsDeleted && x.PartnerId == partnerId)
+        .OrderByDescending(x => x.OperationDate)
+        .ThenByDescending(x => x.CreatedAt)
+        .ToListAsync();
+    return MapExpenses(list);
+}
 
   // ---- Employees ----
   public async Task<List<EmployeeDto>> Employees() =>
@@ -142,11 +187,21 @@ public class FinanceService {
     e.HireDate = dto.HireDate; e.IsActive = dto.IsActive; e.Notes = dto.Notes; e.UpdatedAt = DateTime.UtcNow;
     await _db.SaveChangesAsync();
   }
+  
   public async Task DeleteEmployee(int id) {
     var e = await _db.Employees.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted) ?? throw new InvalidOperationException("غير موجود");
     e.IsDeleted = true; e.IsActive = false; e.UpdatedAt = DateTime.UtcNow; await _db.SaveChangesAsync();
   }
-
+  public async Task<List<SalaryPaymentDto>> EmployeeSalaries(int employeeId)
+  {
+      var salaryCat = await _db.ExpenseCategories.FirstOrDefaultAsync(c => c.Code == "SALARY" && !c.IsDeleted);
+      if (salaryCat == null) return new List<SalaryPaymentDto>();
+      return await _db.ExpenseEntries
+          .Where(x => !x.IsDeleted && x.ExpenseCategoryId == salaryCat.Id && x.EmployeeId == employeeId)
+          .OrderByDescending(x => x.OperationDate).ThenByDescending(x => x.CreatedAt)
+          .Select(x => new SalaryPaymentDto(x.Id, x.OperationDate, x.Amount, x.Notes, x.CreatedAt, x.CreatedByName))
+          .ToListAsync();
+  }
   // ---- Dashboard ----
   public async Task<DashboardDto> Dashboard() {
     var incomes = await _db.IncomeEntries.Where(x => !x.IsDeleted).ToListAsync();

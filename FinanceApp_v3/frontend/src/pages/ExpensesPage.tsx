@@ -18,16 +18,31 @@ export default function ExpensesPage() {
   const [edit, setEdit] = useState<any>(null)
   const [editNote, setEditNote] = useState('')
 
-  const load = async () => {
+    const load = async () => {
     try {
-      const [a, b, c, d] = await Promise.all([
-        api.get('/Finance/expenses'),
-        api.get('/Finance/categories'),
-        api.get('/Finance/partners'),
-        api.get('/Finance/employees')
-      ])
-      setList(a.data); setCats(b.data); setPartners(c.data?.partners || []); setEmps(d.data || [])
-    } catch { toast.error('تعذر التحميل') }
+      const a = await api.get('/Finance/expenses')
+      setList(a.data || [])
+    } catch {
+      toast.error('تعذر تحميل قائمة المصروفات')
+    }
+    try {
+      const b = await api.get('/Finance/categories')
+      setCats((b.data || []).filter((c: any) => c.code !== 'PROFIT_DIST'))
+    } catch {
+      toast.error('تعذر تحميل البنود')
+    }
+    try {
+      const c = await api.get('/Finance/partners')
+      setPartners(c.data?.partners || [])
+    } catch {
+      setPartners([])
+    }
+    try {
+      const d = await api.get('/Finance/employees')
+      setEmps(d.data || [])
+    } catch {
+      setEmps([])
+    }
   }
   useEffect(() => { load() }, [])
 
