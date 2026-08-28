@@ -86,4 +86,128 @@ export default function IncomesPage() {
             <TextField fullWidth size="small" type="date" label="من تاريخ" InputLabelProps={{ shrink: true }}
               value={from} onChange={e => setFrom(e.target.value)} />
           </Grid>
-          <Grid item 
+          <Grid item xs={6} sm={3}>
+            <TextField fullWidth size="small" type="date" label="إلى تاريخ" InputLabelProps={{ shrink: true }}
+              value={to} onChange={e => setTo(e.target.value)} />
+          </Grid>
+          <Grid item xs={6} sm={2}>
+            <Button fullWidth variant="outlined" onClick={() => load(1)}>عرض</Button>
+          </Grid>
+          <Grid item xs={6} sm={2}>
+            <Button fullWidth variant="text" onClick={() => { setFrom(''); setTo(''); setTimeout(() => load(1), 0) }}>مسح الفلتر</Button>
+          </Grid>
+          <Grid item xs={12} sm={2}>
+            <Typography variant="body2">عدد النتائج: {totalCount}</Typography>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      <Table size="small" component={Paper}>
+        <TableHead>
+          <TableRow>
+            <TableCell>تاريخ العملية</TableCell>
+            <TableCell>وقت التسجيل</TableCell>
+            <TableCell>المصدر</TableCell>
+            <TableCell>المبلغ</TableCell>
+            <TableCell>تعليق</TableCell>
+            <TableCell>بواسطة</TableCell>
+            {user?.role === 'Owner' && <TableCell></TableCell>}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {list.map(x => (
+            <TableRow key={x.id}>
+              <TableCell>{new Date(x.operationDate).toLocaleDateString('ar-EG')}</TableCell>
+              <TableCell>{new Date(x.createdAt).toLocaleString('ar-EG')}</TableCell>
+              <TableCell>{srcLabel(x.source)}</TableCell>
+              <TableCell>{x.amount}</TableCell>
+              <TableCell>{x.notes || '—'}</TableCell>
+              <TableCell>{x.createdByName}</TableCell>
+              {user?.role === 'Owner' && (
+                <TableCell>
+                  <Button size="small" onClick={() => {
+                    setEdit({
+                      ...x,
+                      source: x.source === 'KidsArea' ? 1 : x.source === 'CoffeeShop' ? 2 : 3,
+                      operationDate: String(x.operationDate).slice(0, 10)
+                    })
+                    setEditNote('')
+                  }}>تعديل</Button>
+                  <Button size="small" color="error" onClick={async () => {
+                    const note = prompt('ملاحظة الحذف (إلزامي):')
+                    if (!note?.trim()) return
+                    try {
+                      await api.delete(`/Finance/incomes/${x.id}`, { data: { editNote: note } })
+                      toast.success('تم')
+                      load(page)
+                    } catch (e: any) { toast.error(e?.response?.data?.message || 'فشل') }
+                  }}>حذف</Button>
+                </TableCell>
+              )}
+            </TableRow>
+          ))}
+          {!list.length && <TableRow><TableCell colSpan={7}>لا توجد واردات</TableCell></TableRow>}
+        </TableBody>
+      </Table>
+
+      {totalPages > 1 && (
+        <Pagination
+          sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}
+          count={totalPages}
+          page={page}
+          onChange={(_, v) => load(v)}
+          color="primary"
+        />
+      )}
+
+      <Dialog open={!!edit} onClose={() => setEdit(null)} fullWidth maxWidth="sm">
+        <DialogTitle>تعديل وارد (مالك)</DialogTitle>
+        <DialogContent>
+          {edit && (
+            <Grid container spacing={1} sx={{ mt: 0.5 }}>
+              <Grid item xs={6}>
+                <TextField fullWidth size="small" type="date" label="تاريخ العملية" InputLabelProps={{ shrink: true }}
+                  value={edit.operationDate} onChange={e => setEdit({ ...edit, operationDate: e.target.value })} />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField fullWidth size="small" select label="المصدر" value={edit.source}
+                  onChange={e => setEdit({ ...edit, source: +e.target.value })}>
+                  <MenuItem value={1}>كيدز</MenuItem>
+                  <MenuItem value={2}>كوفي</MenuItem>
+                  <MenuItem value={3}>أخرى</MenuItem>
+                </TextField>
+              </Grid>
+              <Grid item xs={6}>
+                <TextField fullWidth size="small" type="number" label="المبلغ" value={edit.amount}
+                  onChange={e => setEdit({ ...edit, amount: +e.target.value })} />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField fullWidth size="small" label="تعليق" value={edit.notes || ''}
+                  onChange={e => setEdit({ ...edit, notes: e.target.value })} />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField fullWidth size="small" required label="ملاحظة التعديل (تُحفظ في السجل)"
+                  value={editNote} onChange={e => setEditNote(e.target.value)} />
+              </Grid>
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEdit(null)}>إلغاء</Button>
+          <Button variant="contained" onClick={async () => {
+            if (!editNote.trim()) return toast.error('ملاحظة التعديل مطلوبة')
+            try {
+              await api.put(`/Finance/incomes/${edit.id}`, {
+                operationDate: edit.operationDate, source: edit.source,
+                amount: edit.amount, notes: edit.notes, editNote
+              })
+              toast.success('تم')
+              setEdit(null)
+              load(page)
+            } catch (e: any) { toast.error(e?.response?.data?.message || 'فشل') }
+          }}>حفظ التعديل</Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  )
+}
